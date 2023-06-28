@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        color: black;
+        background-color: #f8f8f8;
+        line-height: 2;
+        padding: 10px;
+        margin: 0;
+    }
+
+    #block-water {
+        width: 80%;
+        height: 200px;
+        margin-bottom: 10px;
+        background-color: #f8f8f8;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #just-water {
+        width: 80%;
+        height: 200px;
+        margin-bottom: 10px;
+        background-color: #f8f8f8;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #blockIn {
+        width: 80%;
+        height: 60px;
+    }
+
+    #totalwater {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: black;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+    <script>
+		function bothBlockWater() {
+            const inputString = document.querySelector('#blockIn').value.trim();
+			const arr = [];
+			for (let i = 0; i < inputString.split(',').length; i++) {
+ 				 arr.push(Number(inputString.split(',')[i]));
+			}
+
+            const len = arr.length;
+            const blocks = new Array(len);
+            const water = new Array(len);
+            let leftBlock = 0;
+            let rightBlock = 0;
+            let totalWater = 0;
+
+            for (let i = 0; i < len; i++) {
+                leftBlock = Math.max(leftBlock, arr[i]);
+                blocks[i] = leftBlock;
+            }
+
+            for (let i = len - 1; i >= 0; i--) {
+                rightBlock = Math.max(rightBlock, arr[i]);
+                blocks[i] = Math.min(blocks[i], rightBlock);
+                water[i] = Math.max(blocks[i] - arr[i], 0);
+                totalWater += water[i];
+            }
+
+            const units = arr.map((value, index) => {
+                if (water[index] > 0) {
+                    return {
+                        value: water[index],
+                        itemStyle: {
+                            color: 'Blue' 
+                        }
+                    };
+                } else {
+                    return {
+                        value: value,
+                        itemStyle: {
+                            color: 'Yellow' 
+                        }
+                    };
+                }
+            });
+
+            outChart(arr, units, 'block-water');
+
+            const totalWaterVal = document.getElementById('totalwater');
+            totalWaterVal.textContent = `Output: ${totalWater} Units`;
+
+            const justWaterVal = water.map(value => ({
+                value: value,
+                itemStyle: {
+                    color: 'Blue'
+                }
+            }));
+            outChart(arr, justWaterVal, 'just-water');
+        }
+
+        function outChart(verticalIn, waterOutVal, id) {
+            const doc = document.querySelector('#' + id);
+            const n = echarts.init(doc, null, { renderer: 'svg', useDirtyRect: true });
+
+            const mod = {
+				grid: {
+        			left: '10%',
+        			right: '10%',
+        			top: '10%',
+       				 bottom: '10%'
+    			},
+                xAxis: {
+                    type: 'category',
+                    data: verticalIn
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        data: waterOutVal,
+                        type: 'bar',
+                        
+                    }
+                ]
+            };
+
+            n.setOption(mod);
+            
+        }
+       
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>Input Blocks</h1>
+    </div>
+    <div class="block-input">
+        <input type="text" id="blockIn" name="blockIn">
+        <button class="button" onclick="bothBlockWater(parseInput())">Calculate</button>
+    </div>
+    <div class="block-water-out">
+        <div id="block-water"></div>
+    </div>
+    <div class="just-water-out">
+        <span id="totalwater"></span>
+        <div id="just-water"></div>
+    </div>
+
+    <script>
+        function parseInput() {
+            const inputElement = document.getElementById('blockIn');
+            const inputString = inputElement.value.trim();
+            const arr = inputString.split(',').map(Number);
+            return arr;
+        }
+    </script>
+</body>
+</html>
